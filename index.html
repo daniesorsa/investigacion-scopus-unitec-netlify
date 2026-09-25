@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Investigación SCOPUS - UNITEC/CEUTEC</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        unitec: {
+                            navy: '#002855',
+                            blue: '#006FBA',
+                            red: '#DA291C'
+                        },
+                        ceutec: {
+                            navy: '#002D62',
+                            gold: '#FFC72C'
+                        },
+                        dark: {
+                            bg: '#111827',
+                            card: '#1F2937',
+                            border: '#374151',
+                            text: '#F9FAFB',
+                            muted: '#9CA3AF'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <!-- Choices.js CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/choices.js/public/assets/styles/choices.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-gray-50 dark:bg-dark-bg font-['Inter'] text-gray-800 dark:text-dark-text transition-colors duration-200">
+
+    <!-- Navbar -->
+    <nav class="bg-unitec-navy text-white shadow-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <span class="font-bold text-xl tracking-tight">Investigación SCOPUS</span>
+                    <span class="ml-2 px-2 py-1 bg-unitec-blue rounded text-xs font-semibold">UNITEC</span>
+                    <span class="ml-2 px-2 py-1 bg-ceutec-gold text-ceutec-navy rounded text-xs font-semibold">CEUTEC</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="last-updated" class="text-sm text-gray-300 hidden sm:inline-block">Cargando...</span>
+                    <!-- Dark Mode Toggle -->
+                    <button id="theme-toggle" class="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors focus:outline-none">
+                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5 text-gray-200" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5 text-yellow-300" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.32a1 1 0 011.415 0l.707.707a1 1 0 01-1.414 1.414l-.707-.707a1 1 0 010-1.414zM18 10a1 1 0 01-1 1h-1a1 1 0 110-2h1a1 1 0 011 1zm-4.22 4.22a1 1 0 010 1.415l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.415 0zM10 16a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-4.22-2.32a1 1 0 01-1.415 0l-.707-.707a1 1 0 011.414-1.414l.707.707a1 1 0 010 1.414zM4 10a1 1 0 01-1 1H2a1 1 0 110-2h1a1 1 0 011 1zm2.32-4.22a1 1 0 010-1.415l.707-.707a1 1 0 011.414 1.414l-.707.707a1 1 0 01-1.414 0zM10 5a5 5 0 100 10 5 5 0 000-10z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Filters Panel -->
+        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 mb-8 border border-gray-100 dark:border-dark-border transition-colors">
+            <h2 class="text-lg font-semibold text-unitec-navy dark:text-gray-100 mb-4 border-b dark:border-dark-border pb-2">Filtros de Búsqueda</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="facultad-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Filtrar por Facultad</label>
+                    <select id="facultad-filter" multiple></select>
+                </div>
+                <div>
+                    <label for="autor-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Filtrar por Autor</label>
+                    <select id="autor-filter" multiple></select>
+                </div>
+            </div>
+            <div class="mt-4 flex justify-end">
+                <button id="btn-reset" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition text-sm font-medium">Limpiar Filtros</button>
+            </div>
+        </div>
+
+        <!-- KPIs Generales -->
+        <div id="general-kpis" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 border-l-4 border-unitec-blue transition-colors">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Total Autores</p>
+                <p id="kpi-autores" class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">-</p>
+            </div>
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 border-l-4 border-unitec-red transition-colors">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Total Publicaciones</p>
+                <p id="kpi-pubs" class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">-</p>
+            </div>
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 border-l-4 border-ceutec-gold transition-colors">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Total Citas</p>
+                <p id="kpi-citas" class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">-</p>
+            </div>
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 border-l-4 border-green-500 transition-colors">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400 uppercase">Países Colaboradores</p>
+                <p id="kpi-paises" class="mt-2 text-3xl font-bold text-gray-900 dark:text-white">-</p>
+            </div>
+        </div>
+
+        <!-- Author KPIs Section (Above Map) -->
+        <div id="author-kpis-container" class="hidden mb-8 space-y-6"></div>
+
+        <!-- Map Section -->
+        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md overflow-hidden mb-8 border border-gray-100 dark:border-dark-border transition-colors">
+            <div class="p-4 bg-gray-50 dark:bg-gray-800 border-b dark:border-dark-border flex justify-between items-center">
+                <h2 class="text-lg font-semibold text-unitec-navy dark:text-white">Mapa Inteligente de Colaboraciones</h2>
+                <span class="text-xs text-gray-500 dark:text-gray-400">Grosor y color indican volumen</span>
+            </div>
+            <div id="map" class="w-full h-[500px] z-10 dark:invert-[.9] dark:hue-rotate-180 transition-[filter]"></div>
+        </div>
+
+        <!-- Author Table Section (Below Map) -->
+        <div id="author-table-container" class="hidden mb-8 space-y-6"></div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 border border-gray-100 dark:border-dark-border transition-colors">
+                <h2 class="text-lg font-semibold text-unitec-navy dark:text-white mb-4">Evolución de Publicaciones y Citas</h2>
+                <div id="timeline-chart" class="w-full h-80"></div>
+            </div>
+            <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 border border-gray-100 dark:border-dark-border transition-colors">
+                <h2 class="text-lg font-semibold text-unitec-navy dark:text-white mb-4">Top 10 Países Colaboradores</h2>
+                <div id="countries-chart" class="w-full h-80"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/choices.js/public/assets/scripts/choices.min.js"></script>
+    
+    <!-- Export Libraries -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/libs/jszip.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    
+    <script src="js/map.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+
+</body>
+</html>

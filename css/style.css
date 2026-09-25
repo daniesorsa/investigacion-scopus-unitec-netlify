@@ -1,0 +1,91 @@
+/* Custom styles to complement Tailwind */
+
+/* Choices.js customization for our theme */
+.choices__inner {
+    border-radius: 0.5rem !important;
+    border-color: #e5e7eb !important;
+    background-color: #f9fafb !important;
+    padding-bottom: 0px !important;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.dark .choices__inner {
+    border-color: #374151 !important;
+    background-color: #1F2937 !important;
+}
+
+.dark .choices__input {
+    background-color: transparent !important;
+    color: #F9FAFB !important;
+}
+
+.choices__list--multiple .choices__item {
+    background-color: #006FBA !important;
+    border: 1px solid #002855 !important;
+    border-radius: 0.25rem !important;
+}
+
+.dark .choices__list--dropdown {
+    background-color: #1F2937 !important;
+    border-color: #374151 !important;
+    color: #F9FAFB !important;
+}
+
+.dark .choices__list--dropdown .choices__item--selectable.is-highlighted {
+    background-color: #374151 !important;
+}
+
+/* Map popup customization */
+.leaflet-popup-content-wrapper {
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.dark .leaflet-popup-content-wrapper {
+    background-color: #1F2937;
+    color: #F9FAFB;
+}
+
+.dark .leaflet-popup-tip {
+    background-color: #1F2937;
+}
+
+.leaflet-popup-content {
+    margin: 12px 16px;
+    line-height: 1.5;
+}
+
+.custom-popup-title {
+    font-weight: 700;
+    color: #002855;
+    margin-bottom: 4px;
+    font-size: 14px;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 4px;
+}
+
+.dark .custom-popup-title {
+    color: #60A5FA;
+    border-bottom: 1px solid #374151;
+}
+
+.custom-popup-data {
+    font-size: 13px;
+    color: #4b5563;
+}
+
+.dark .custom-popup-data {
+    color: #D1D5DB;
+}
+
+/* Map line animation */
+.animated-line {
+    stroke-dasharray: 10;
+    animation: dash 60s linear infinite;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
