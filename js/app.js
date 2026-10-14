@@ -7,6 +7,7 @@ let autorChoices;
 
 document.addEventListener('DOMContentLoaded', async () => {
     initThemeToggle();
+    initRevealAnimations();
     initMap();
     initCharts();
 
@@ -31,12 +32,10 @@ function initThemeToggle() {
     const darkIcon = document.getElementById('theme-toggle-dark-icon');
     const lightIcon = document.getElementById('theme-toggle-light-icon');
 
-    // Comprobar preferencia de modo oscuro
-    if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
+    // El tema ya se aplicó en el <head> (evita parpadeo); aquí solo se sincronizan los íconos
+    if (document.documentElement.classList.contains('dark')) {
         lightIcon.classList.remove('hidden');
     } else {
-        document.documentElement.classList.remove('dark');
         darkIcon.classList.remove('hidden');
     }
 
@@ -44,18 +43,59 @@ function initThemeToggle() {
         darkIcon.classList.toggle('hidden');
         lightIcon.classList.toggle('hidden');
 
-        if (document.documentElement.classList.contains('dark')) {
-            document.documentElement.classList.remove('dark');
+        const root = document.documentElement;
+        root.classList.add('theme-transition');
+        if (root.classList.contains('dark')) {
+            root.classList.remove('dark');
             localStorage.setItem('color-theme', 'light');
         } else {
-            document.documentElement.classList.add('dark');
+            root.classList.add('dark');
             localStorage.setItem('color-theme', 'dark');
         }
-        
-        // Forzar redibujado de gráficas si es necesario
-        if (typeof timelineChart !== 'undefined') timelineChart.resize();
-        if (typeof countriesChart !== 'undefined') countriesChart.resize();
+        setTimeout(() => root.classList.remove('theme-transition'), 400);
+
+        // Repintar mapa y gráficas con la paleta del nuevo tema
+        if (typeof refreshMapTheme === 'function') refreshMapTheme();
+        if (typeof refreshChartsTheme === 'function') refreshChartsTheme();
     });
+}
+
+// Anima la aparición de las secciones .reveal al entrar en pantalla
+function initRevealAnimations() {
+    const els = document.querySelectorAll('.reveal');
+    if (!('IntersectionObserver' in window)) {
+        els.forEach(el => el.classList.add('is-visible'));
+        return;
+    }
+    const observer = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                setTimeout(() => { entry.target.style.transitionDelay = ''; }, 1000);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+    els.forEach((el, i) => {
+        el.style.transitionDelay = `${Math.min(i, 5) * 70}ms`;
+        observer.observe(el);
+    });
+}
+
+// Contador animado para los números de las tarjetas
+function animateNumber(el, target, decimals = 0, duration = 900) {
+    if (!el) return;
+    const start = parseFloat((el.dataset.value || '0')) || 0;
+    el.dataset.value = target;
+    const t0 = performance.now();
+    const fmt = v => v.toLocaleString('es-HN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    function step(now) {
+        const p = Math.min((now - t0) / duration, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(start + (target - start) * eased);
+        if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
 }
 
 function setupFilters(data) {
@@ -168,83 +208,76 @@ function applyFiltersAndRender() {
 }
 
 function renderAuthorDetails(autores, kpisContainer, tableContainer) {
+    const statCard = (label, valueAttrs, colorCls) => `
+        <div class="card-lift bg-gray-50 dark:bg-dark-soft p-4 rounded-lg border border-gray-200 dark:border-dark-border text-center">
+            <p class="text-xs text-gray-500 dark:text-dark-muted uppercase font-semibold tracking-wide">${label}</p>
+            <p class="text-2xl font-bold mt-1 ${colorCls}" ${valueAttrs}>0</p>
+        </div>`;
+    const num = (v, dec = 0) => (v === undefined || v === null || v === '' || isNaN(v)) ? 'data-text="-"' : `data-count="${v}" data-decimals="${dec}"`;
+
     // Tarjetas y Botones Arriba del Mapa
-    kpisContainer.innerHTML = autores.map(autor => `
-        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-dark-border transition-colors">
+    kpisContainer.innerHTML = autores.map((autor, i) => `
+        <div class="anim-enter bg-white dark:bg-dark-card rounded-xl shadow-md overflow-hidden border border-gray-200 dark:border-dark-border" style="animation-delay:${i * 90}ms">
             <div class="bg-unitec-navy px-6 py-4 flex flex-col md:flex-row justify-between items-center text-white">
                 <div class="mb-4 md:mb-0 text-center md:text-left">
                     <h3 class="text-xl font-bold">${autor.nombre}</h3>
-                    <p class="text-sm opacity-90">Facultad: ${autor.facultad}</p>
+                    <p class="text-sm text-blue-100">Facultad: ${autor.facultad}</p>
                 </div>
-                <div class="flex flex-wrap justify-center space-x-2">
-                    <button onclick="downloadAuthorData('${autor.id}', 'xlsx')" class="px-3 py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-bold shadow transition-colors flex items-center">
-                        ↓ Descargar XLSX
-                    </button>
-                    <button onclick="downloadAuthorData('${autor.id}', 'json')" class="px-3 py-2 bg-gray-600 hover:bg-gray-500 rounded text-sm font-bold shadow transition-colors flex items-center">
-                        ↓ Descargar JSON
-                    </button>
-                    <button onclick="downloadAuthorData('${autor.id}', 'pptx')" class="px-3 py-2 bg-orange-600 hover:bg-orange-500 rounded text-sm font-bold shadow transition-colors flex items-center">
-                        ↓ Descargar PPTX
-                    </button>
+                <div class="flex flex-wrap justify-center gap-2">
+                    <button onclick="downloadAuthorData('${autor.id}', 'xlsx')" class="btn-press px-3 py-2 bg-green-600 hover:bg-green-500 rounded text-sm font-semibold shadow flex items-center">↓ Descargar XLSX</button>
+                    <button onclick="downloadAuthorData('${autor.id}', 'json')" class="btn-press px-3 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm font-semibold shadow flex items-center">↓ Descargar JSON</button>
+                    <button onclick="downloadAuthorData('${autor.id}', 'pptx')" class="btn-press px-3 py-2 bg-orange-600 hover:bg-orange-500 rounded text-sm font-semibold shadow flex items-center">↓ Descargar PPTX</button>
                 </div>
             </div>
-            
             <div class="p-6">
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-dark-border text-center transition-colors">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Publicaciones</p>
-                        <p class="text-2xl font-bold text-unitec-blue dark:text-blue-400">${autor.stats.totalPubs}</p>
-                    </div>
-                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-dark-border text-center transition-colors">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Citas Totales</p>
-                        <p class="text-2xl font-bold text-ceutec-gold">${autor.stats.totalCites}</p>
-                    </div>
-                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-dark-border text-center transition-colors">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Citas s/Autocitas</p>
-                        <p class="text-2xl font-bold text-gray-700 dark:text-gray-200">${autor.stats.exclTotalCites !== undefined ? autor.stats.exclTotalCites : autor.stats.totalCites}</p>
-                    </div>
-                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-dark-border text-center transition-colors">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Promedio Citas</p>
-                        <p class="text-2xl font-bold text-gray-700 dark:text-gray-200">${autor.stats.citePromedio !== undefined ? autor.stats.citePromedio.toFixed(2) : '-'}</p>
-                    </div>
-                    <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-dark-border text-center transition-colors">
-                        <p class="text-xs text-gray-500 dark:text-gray-400 uppercase font-bold">Redes Colab.</p>
-                        <p class="text-2xl font-bold text-gray-700 dark:text-gray-200">${autor.stats.redesColaboracion || '-'}</p>
-                    </div>
+                    ${statCard('Publicaciones', num(autor.stats.totalPubs), 'text-unitec-blue dark:text-blue-400')}
+                    ${statCard('Citas Totales', num(autor.stats.totalCites), 'text-amber-600 dark:text-ceutec-gold')}
+                    ${statCard('Citas s/Autocitas', num(autor.stats.exclTotalCites !== undefined ? autor.stats.exclTotalCites : autor.stats.totalCites), 'text-gray-800 dark:text-gray-100')}
+                    ${statCard('Promedio Citas', num(autor.stats.citePromedio, 2), 'text-gray-800 dark:text-gray-100')}
+                    ${statCard('Redes Colab.', num(autor.stats.redesColaboracion), 'text-gray-800 dark:text-gray-100')}
                 </div>
             </div>
         </div>
     `).join('');
 
+    // Animar los números de las tarjetas recién creadas
+    kpisContainer.querySelectorAll('[data-count]').forEach(el => {
+        animateNumber(el, parseFloat(el.dataset.count), parseInt(el.dataset.decimals, 10));
+    });
+    kpisContainer.querySelectorAll('[data-text]').forEach(el => { el.textContent = el.dataset.text; });
+
+    const linkCls = 'text-unitec-blue dark:text-blue-400 hover:underline font-semibold';
+
     // Tabla Abajo del Mapa
-    tableContainer.innerHTML = autores.map(autor => `
-        <div class="bg-white dark:bg-dark-card rounded-xl shadow-md p-6 border border-gray-200 dark:border-dark-border transition-colors">
-            <h4 class="text-lg font-bold text-unitec-navy dark:text-white mb-4 border-b dark:border-dark-border pb-2">Tabla de Publicaciones - ${autor.nombre}</h4>
+    tableContainer.innerHTML = autores.map((autor, i) => `
+        <div class="anim-enter bg-white dark:bg-dark-card rounded-xl shadow-md p-6 border border-gray-200 dark:border-dark-border" style="animation-delay:${150 + i * 90}ms">
+            <h4 class="text-lg font-bold text-unitec-navy dark:text-white mb-4 border-b border-gray-200 dark:border-dark-border pb-2">Tabla de Publicaciones - ${autor.nombre}</h4>
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm text-left border border-gray-200 dark:border-dark-border">
-                    <thead class="text-xs text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 uppercase border-b border-gray-200 dark:border-dark-border">
+                    <thead class="text-xs text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-dark-soft uppercase border-b border-gray-200 dark:border-dark-border">
                         <tr>
                             <th class="px-4 py-3">Año</th>
                             <th class="px-4 py-3 w-1/2">Título</th>
                             <th class="px-4 py-3">Revista / Fuente</th>
                             <th class="px-4 py-3 text-center">Citas</th>
-                            <th class="px-4 py-3 text-center">Link</th>
+                            <th class="px-4 py-3 text-center">Enlace</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${(autor.articulos && autor.articulos.length > 0) ? autor.articulos.map(art => `
-                            <tr class="border-b dark:border-dark-border hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                                <td class="px-4 py-3 align-top font-semibold dark:text-gray-200">${art.year}</td>
-                                <td class="px-4 py-3 align-top text-gray-900 dark:text-gray-300">${art.title}</td>
-                                <td class="px-4 py-3 align-top italic text-gray-600 dark:text-gray-400">${art.journal || art.docType || ''}</td>
-                                <td class="px-4 py-3 align-top text-center font-bold text-ceutec-gold">${art.cites !== undefined ? art.cites : '-'}</td>
+                        ${(autor.articulos && autor.articulos.length > 0) ? autor.articulos.map((art, r) => `
+                            <tr class="anim-enter border-b border-gray-100 dark:border-dark-border hover:bg-blue-50 dark:hover:bg-dark-soft transition-colors" style="animation-delay:${Math.min(r, 20) * 25}ms">
+                                <td class="px-4 py-3 align-top font-semibold text-gray-800 dark:text-gray-100">${art.year}</td>
+                                <td class="px-4 py-3 align-top text-gray-900 dark:text-gray-200">${art.title}</td>
+                                <td class="px-4 py-3 align-top italic text-gray-600 dark:text-dark-muted">${art.journal || art.docType || ''}</td>
+                                <td class="px-4 py-3 align-top text-center font-bold text-amber-600 dark:text-ceutec-gold">${art.cites !== undefined ? art.cites : '-'}</td>
                                 <td class="px-4 py-3 align-top text-center">
-                                    ${art.link 
-                                        ? `<a href="${art.link}" target="_blank" class="text-unitec-blue dark:text-blue-400 hover:underline font-medium">Scopus</a>` 
-                                        : (art.doi ? `<a href="https://doi.org/${art.doi}" target="_blank" class="text-unitec-blue dark:text-blue-400 hover:underline font-medium">DOI</a>` : '-')}
+                                    ${art.link
+                                        ? `<a href="${art.link}" target="_blank" class="${linkCls}">Scopus</a>`
+                                        : (art.doi ? `<a href="https://doi.org/${art.doi}" target="_blank" class="${linkCls}">DOI</a>` : '-')}
                                 </td>
                             </tr>
-                        `).join('') : '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500 dark:text-gray-400">No hay publicaciones registradas.</td></tr>'}
+                        `).join('') : '<tr><td colspan="5" class="px-4 py-4 text-center text-gray-500 dark:text-dark-muted">No hay publicaciones registradas.</td></tr>'}
                     </tbody>
                 </table>
             </div>
@@ -336,7 +369,7 @@ window.downloadAuthorData = async function(autorId, format) {
             let paisesArr = Object.entries(autor.paisesColaboracion).sort((a,b)=>b[1]-a[1]).slice(0, 10);
             let pRows = [[{ text:"País", options:{fill:"DA291C", color:"ffffff", bold:true} }, { text:"Documentos", options:{fill:"DA291C", color:"ffffff", bold:true} }]];
             
-            paisesArr.forEach(p => pRows.push([p[0], String(p[1])]));
+            paisesArr.forEach(p => pRows.push([paisES(p[0]), String(p[1])]));
             slide3.addTable(pRows, { x:1, y:1.5, w:8, rowH:0.4, fontSize:14, border:{pt:1, color:"CCCCCC"} });
         }
 
@@ -379,8 +412,8 @@ function aggregateData(autores) {
 }
 
 function updateKPIs(autores, pubs, citas, paises) {
-    document.getElementById('kpi-autores').textContent = autores.toLocaleString();
-    document.getElementById('kpi-pubs').textContent = pubs.toLocaleString();
-    document.getElementById('kpi-citas').textContent = citas.toLocaleString();
-    document.getElementById('kpi-paises').textContent = paises.toLocaleString();
+    animateNumber(document.getElementById('kpi-autores'), autores);
+    animateNumber(document.getElementById('kpi-pubs'), pubs);
+    animateNumber(document.getElementById('kpi-citas'), citas);
+    animateNumber(document.getElementById('kpi-paises'), paises);
 }
