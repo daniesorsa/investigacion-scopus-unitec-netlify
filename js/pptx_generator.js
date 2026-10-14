@@ -561,9 +561,9 @@ function buildSlide3Xml(data) {
       <p:spPr><a:xfrm><a:off x="800100" y="1828800"/><a:ext cx="2179320" cy="2286000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="4200"><a:solidFill><a:srgbClr val="002855"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.totalPubs}</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="60000"/><a:r><a:rPr b="1" sz="1250"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>PUBLICACIONES INDEXADAS</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Período Activo: ${data.primerAnio} - ${data.ultimoAnio}</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="40000"/><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="94A3B8"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Producción acumulada en Scopus.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr b="1" sz="1250"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>PUBLICACIONES INDEXADAS</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Período Activo: ${data.primerAnio} - ${data.ultimoAnio}</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="94A3B8"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Producción acumulada en Scopus.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
@@ -581,9 +581,9 @@ function buildSlide3Xml(data) {
       <p:spPr><a:xfrm><a:off x="3604260" y="1828800"/><a:ext cx="2179320" cy="2286000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="4200"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.totalCites}</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="60000"/><a:r><a:rPr b="1" sz="1250"><a:solidFill><a:srgbClr val="D97706"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>CITACIONES TOTALES</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Promedio: ${data.promedioCites} citas / doc</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="40000"/><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="94A3B8"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.exclCites} citas s/ autocitaciones.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr b="1" sz="1250"><a:solidFill><a:srgbClr val="D97706"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>CITACIONES TOTALES</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Promedio: ${data.promedioCites} citas / doc</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="94A3B8"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.exclCites} citas s/ autocitaciones.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
@@ -601,9 +601,9 @@ function buildSlide3Xml(data) {
       <p:spPr><a:xfrm><a:off x="6408420" y="1828800"/><a:ext cx="2179320" cy="2286000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="4200"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.maxPubs}</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="60000"/><a:r><a:rPr b="1" sz="1250"><a:solidFill><a:srgbClr val="059669"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>MÁXIMO ANUAL (${data.anioMaxPubs})</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Efectividad: ${data.tasaConversion}% con citas</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="40000"/><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="94A3B8"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Año cumbre de productividad.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr b="1" sz="1250"><a:solidFill><a:srgbClr val="059669"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>MÁXIMO ANUAL (${data.anioMaxPubs})</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Efectividad: ${data.tasaConversion}% con citas</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="94A3B8"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Año cumbre de productividad.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
@@ -621,9 +621,9 @@ function buildSlide3Xml(data) {
       <p:spPr><a:xfrm><a:off x="9212580" y="1828800"/><a:ext cx="2179320" cy="2286000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="4200"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.redesCount}</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="60000"/><a:r><a:rPr b="1" sz="1250"><a:solidFill><a:srgbClr val="7C3AED"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>PAÍSES EN COAUTORÍA</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Red de impacto global</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="40000"/><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="94A3B8"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Vínculos internacionales activos.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr b="1" sz="1250"><a:solidFill><a:srgbClr val="7C3AED"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>PAÍSES EN COAUTORÍA</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Red de impacto global</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="94A3B8"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Vínculos internacionales activos.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
@@ -641,7 +641,7 @@ function buildSlide3Xml(data) {
       <p:spPr><a:xfrm><a:off x="914400" y="4762500"/><a:ext cx="10477500" cy="1333500"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="1350"><a:solidFill><a:srgbClr val="002855"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>SÍNTESIS METODOLÓGICA DEL COMPORTAMIENTO BIBLIOMÉTRICO ANUAL</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="60000"/><a:r><a:rPr sz="1200"><a:solidFill><a:srgbClr val="334155"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>El investigador ${data.nombre} registra una sólida trayectoria investigativa en la Facultad ${data.facultad} de UNITEC / CEUTEC con ${data.totalPubs} publicaciones indexadas en Scopus y ${data.totalCites} citas recibidas (${data.exclCites} citas netas sin autocitas). El año con mayor citación histórica corresponde a ${data.anioMaxCites} con ${data.maxCites} citas registradas, demostrando relevancia académica sostenida.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1200"><a:solidFill><a:srgbClr val="334155"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>El investigador ${data.nombre} registra una sólida trayectoria investigativa en la Facultad ${data.facultad} de UNITEC / CEUTEC con ${data.totalPubs} publicaciones indexadas en Scopus y ${data.totalCites} citas recibidas (${data.exclCites} citas netas sin autocitas). El año con mayor citación histórica corresponde a ${data.anioMaxCites} con ${data.maxCites} citas registradas, demostrando relevancia académica sostenida.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
@@ -697,8 +697,8 @@ function buildSlide12Xml(data) {
       <p:spPr><a:xfrm><a:off x="800100" y="1828800"/><a:ext cx="3100000" cy="2286000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="1600"><a:solidFill><a:srgbClr val="002855"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Calidad de Metadatos</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr b="1" sz="1200"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>VERIFICACIÓN OFICIAL</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Los datos fueron extraídos y homologados según el protocolo estándar de Scopus (Elsevier), auditando 30 campos bibliográficos clave.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr b="1" sz="1200"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>VERIFICACIÓN OFICIAL</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Los datos fueron extraídos y homologados según el protocolo estándar de Scopus (Elsevier), auditando 30 campos bibliográficos clave.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
@@ -716,8 +716,8 @@ function buildSlide12Xml(data) {
       <p:spPr><a:xfrm><a:off x="4550000" y="1828800"/><a:ext cx="3100000" cy="2286000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="1600"><a:solidFill><a:srgbClr val="002855"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Fomento Científico</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr b="1" sz="1200"><a:solidFill><a:srgbClr val="D97706"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>IMPACTO INSTITUCIONAL</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Insumo oficial para el seguimiento de la productividad docente, categorización de investigadores y acreditación académica institucional.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr b="1" sz="1200"><a:solidFill><a:srgbClr val="D97706"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>IMPACTO INSTITUCIONAL</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Insumo oficial para el seguimiento de la productividad docente, categorización de investigadores y acreditación académica institucional.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
@@ -735,8 +735,8 @@ function buildSlide12Xml(data) {
       <p:spPr><a:xfrm><a:off x="8300000" y="1828800"/><a:ext cx="3100000" cy="2286000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="1600"><a:solidFill><a:srgbClr val="002855"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Edición y Compatibilidad</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr b="1" sz="1200"><a:solidFill><a:srgbClr val="059669"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>FORMATO OPENXML</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="80000"/><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Estructura 100% nativa y editable compatible con Microsoft PowerPoint, OnlyOffice, LibreOffice y Google Slides.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr b="1" sz="1200"><a:solidFill><a:srgbClr val="059669"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>FORMATO OPENXML</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Estructura 100% nativa y editable compatible con Microsoft PowerPoint, OnlyOffice, LibreOffice y Google Slides.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
@@ -750,7 +750,7 @@ function buildSlide12Xml(data) {
       <p:spPr><a:xfrm><a:off x="914400" y="4762500"/><a:ext cx="10477500" cy="1333500"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
       <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
         <a:p><a:r><a:rPr b="1" sz="1400"><a:solidFill><a:srgbClr val="FFC72C"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>DIRECCIÓN DE INVESTIGACIÓN • UNITEC / CEUTEC HONDURAS</a:t></a:r></a:p>
-        <a:p><a:pPr spaceBefore="60000"/><a:r><a:rPr sz="1200"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Sistema Institucional de Monitoreo Bibliométrico y Analítica de Investigación Científica emitido el ${data.adminDateStr}. Todos los datos han sido procesados y certificados para uso institucional.</a:t></a:r></a:p>
+        <a:p><a:r><a:rPr sz="1200"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Sistema Institucional de Monitoreo Bibliométrico y Analítica de Investigación Científica emitido el ${data.adminDateStr}. Todos los datos han sido procesados y certificados para uso institucional.</a:t></a:r></a:p>
       </p:txBody>
     </p:sp>
 
