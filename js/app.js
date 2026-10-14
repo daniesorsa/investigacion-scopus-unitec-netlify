@@ -331,49 +331,12 @@ window.downloadAuthorData = async function(autorId, format) {
         XLSX.writeFile(wb, `${autor.id}_SCOPUS.xlsx`);
     }
     else if (format === 'pptx') {
-        if (typeof PptxGenJS === 'undefined') return alert('Librería PPTX no cargada aún');
-        
-        let pres = new PptxGenJS();
-        pres.author = 'Admin UNITEC';
-        pres.company = 'UNITEC / CEUTEC';
-        
-        // Slide 1: Portada
-        let slide1 = pres.addSlide();
-        slide1.background = { color: "002855" };
-        slide1.addText("TITULO: " + autor.nombre, { 
-            x:1, y:2, w:'80%', h:1, fontSize:32, color:"FFFFFF", bold:true, align:"center" 
-        });
-        slide1.addText("SUBTITULO: " + adminDateStr + " DE PARTE DEL ADMIN", { 
-            x:1, y:3.5, w:'80%', h:1, fontSize:18, color:"FFC72C", align:"center" 
-        });
-
-        // Slide 2: Resumen
-        let slide2 = pres.addSlide();
-        slide2.addText("Resumen de Estadísticas", { x:0.5, y:0.5, w:'90%', fontSize:24, color:"002855", bold:true });
-        
-        let statsRows = [
-            [{ text:"Métrica", options:{fill:"006FBA", color:"ffffff", bold:true} }, { text:"Valor", options:{fill:"006FBA", color:"ffffff", bold:true} }],
-            ["Total Publicaciones", String(autor.stats.totalPubs)],
-            ["Total Citas", String(autor.stats.totalCites)],
-            ["Citas sin Autocitas", String(autor.stats.exclTotalCites !== undefined ? autor.stats.exclTotalCites : autor.stats.totalCites)],
-            ["Promedio de Citas por Doc.", String(autor.stats.citePromedio !== undefined ? autor.stats.citePromedio.toFixed(2) : '-')],
-            ["Países en Colaboración", String(autor.stats.redesColaboracion || '-')]
-        ];
-        slide2.addTable(statsRows, { x:1, y:1.5, w:8, rowH:0.5, fontSize:16, border:{pt:1, color:"CCCCCC"} });
-
-        // Slide 3: Países Top
-        if (autor.paisesColaboracion && Object.keys(autor.paisesColaboracion).length > 0) {
-            let slide3 = pres.addSlide();
-            slide3.addText("Top Colaboraciones por País", { x:0.5, y:0.5, w:'90%', fontSize:24, color:"002855", bold:true });
-            
-            let paisesArr = Object.entries(autor.paisesColaboracion).sort((a,b)=>b[1]-a[1]).slice(0, 10);
-            let pRows = [[{ text:"País", options:{fill:"DA291C", color:"ffffff", bold:true} }, { text:"Documentos", options:{fill:"DA291C", color:"ffffff", bold:true} }]];
-            
-            paisesArr.forEach(p => pRows.push([paisES(p[0]), String(p[1])]));
-            slide3.addTable(pRows, { x:1, y:1.5, w:8, rowH:0.4, fontSize:14, border:{pt:1, color:"CCCCCC"} });
+        try {
+            await generarPlantillaAutorPptx(autor, globalData);
+        } catch (e) {
+            console.error('Error generando PPTX:', e);
+            alert('Error generando la presentación PPTX. Revise la consola.');
         }
-
-        pres.writeFile({ fileName: `${autor.id}_Presentacion_SCOPUS.pptx` });
     }
 };
 

@@ -189,3 +189,36 @@ html.theme-transition, html.theme-transition *, html.theme-transition *::before,
 /* Etiquetas secundarias: ocultas con poco zoom para que no se encimen (ver map.js) */
 .leaflet-tooltip.map-label-minor { display: none; }
 .labels-all .leaflet-tooltip.map-label-minor { display: block; }
+
+/* Rótulos de océanos 100% en Español */
+.ocean-watermark {
+    pointer-events: none;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: rgba(0, 40, 85, 0.28);
+    font-family: 'Montserrat', sans-serif;
+    user-select: none;
+    white-space: nowrap;
+}
+.dark .ocean-watermark {
+    color: rgba(96, 165, 250, 0.22);
+}
+
+/* Tooltip al pasar el mouse por cualquier país del mapa */
+.country-hover-tooltip {
+    background-color: rgba(0, 40, 85, 0.92) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 6px !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    font-family: 'Montserrat', sans-serif !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2) !important;
+}
+.dark .country-hover-tooltip {
+    background-color: rgba(15, 23, 42, 0.95) !important;
+    color: #F8FAFC !important;
+    border: 1px solid #334155 !important;
+}
+
