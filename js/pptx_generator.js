@@ -80,12 +80,15 @@ async function generarPlantillaAutorPptx(autor, globalData) {
     const articulos = (autor.articulos || []).slice().sort((a, b) => (b.cites || 0) - (a.cites || 0));
     const topArt = articulos.length > 0 ? articulos[0] : null;
 
-    // Países colaboradores traducidos a Español
-    const topPaises = Object.entries(autor.paisesColaboracion || {})
-        .sort((a, b) => b[1] - a[1])
+    // Países colaboradores traducidos a Español con sus cantidades
+    const allPaisesExternos = Object.entries(autor.paisesColaboracion || {})
         .filter(p => p[0] !== 'Honduras')
+        .sort((a, b) => b[1] - a[1]);
+    const totalPaisesExternos = allPaisesExternos.length;
+    const topPaisesObj = allPaisesExternos
         .slice(0, 6)
-        .map(p => paisES(p[0]));
+        .map(p => ({ pais: paisES(p[0]), cant: p[1] }));
+    const topPaises = topPaisesObj.map(p => p.pais);
     const paisesStr = topPaises.length > 0 ? topPaises.join(' • ') : 'Consolidación Institucional Honduras';
     const paisesStrCorto = topPaises.length > 0 ? topPaises.slice(0, 3).join(', ') : 'Honduras';
 
@@ -268,58 +271,34 @@ async function generarPlantillaAutorPptx(autor, globalData) {
                 `El investigador registra ${totalPubs} publicaciones y ${totalCites} citas totales en Scopus con un promedio de ${promedioCites} citas por documento.`);
         } 
         else if (s === 7) {
-            if (topArt) {
-                const tipoDoc = topArt.docType ? topArt.docType.toUpperCase() : 'ARTÍCULO CIENTÍFICO';
-                xml = xml.replace(/CONFERENCE PAPER • ETAPA FINAL \(2019\)/g, `${escapeXml(tipoDoc)} • AÑO ${escapeXml(topArt.year)}`);
-                xml = xml.replace(/Digital heritage: An inventory of scientific journals in Honduras/g, escapeXml(topArt.title));
-                xml = xml.replace(/Publicado en: 2019 IEEE 39th Central America and Panama Convention \(CONCAPAN 2019\)\./g, `Fuente: ${escapeXml(topArt.journal || 'Indexado en Scopus')}`);
-                xml = xml.replace(/DOI: 10\.1109\/CONCAPANXXXIX47272\.2019\.8977056/g, `DOI: ${escapeXml(topArt.doi || 'Enlace verificado en Scopus')}`);
-                xml = xml.replace(/IEEE Inc\. • ISBN: 978-172810883-4 • Art\. No\. 8977056/g, `Afiliación: UNITEC / CEUTEC • Facultad ${escapeXml(autor.facultad)}`);
-                xml = xml.replace(/Volumen: 2019-November • Idioma: Español \(Spanish\)/g, `Idioma: Español / Inglés • Indexación Internacional`);
-                xml = xml.replace(/Base de Datos Scopus • EID: 2-s2\.0-85084950839/g, `Base Scopus • Investigador: ${escapeXml(autor.nombre)}`);
-            }
+            // Se remueve la Ficha Técnica innecesaria de la presentación
+            continue;
         } 
         else if (s === 8) {
-            xml = xml.replace(/Palabras clave exactas: Analytics • Business Intelligence • Data Analysis • Databases • Digital Heritage • ICT • Inventory • Tableau/g,
-                `Líneas de Investigación y Áreas Temáticas: Facultad ${escapeXml(autor.facultad)} • UNITEC / CEUTEC`);
-            xml = xml.replace(/Analítica y BI/g, escapeXml(themes[0].title));
-            xml = xml.replace(/Inteligencia de negocios aplicada\./g, escapeXml(themes[0].desc));
-            xml = xml.replace(/Datos e Inventario/g, escapeXml(themes[1].title));
-            xml = xml.replace(/Bases de datos estructuradas\./g, escapeXml(themes[1].desc));
-            xml = xml.replace(/Patrimonio Digital/g, escapeXml(themes[2].title));
-            xml = xml.replace(/Revistas científicas en Honduras\./g, escapeXml(themes[2].desc));
-            xml = xml.replace(/TIC y Tableau/g, escapeXml(themes[3].title));
-            xml = xml.replace(/Plataformas tecnológicas visuales\./g, escapeXml(themes[3].desc));
+            // Ejes de investigación desplegados en un círculo central interactivo sin descripciones largas
+            xml = buildSlide8CirclesXml(autor, themes);
         } 
         else if (s === 9) {
-            xml = xml.replace(/Distribución por Unidad Académica en UNITEC:/g, 'Articulación de Redes Institucionales e Internacionales:');
-            xml = xml.replace(/Facultad de Ingeniería \(50% \/ 2 autores\) • Escuela de Arte y Diseño \(25% \/ 1 autor\) • Dirección de Investigación \(25% \/ 1 autor\)/g,
-                `Facultad ${escapeXml(autor.facultad)} • UNITEC / CEUTEC • Red de Coautoría con ${redesCount} Países Colaboradores`);
-
-            xml = xml.replace(/AUTOR 01 • ID 6508341373/g, `INVESTIGADOR EVALUADO • ID ${escapeXml(autor.id)}`);
-            xml = xml.replace(/Reyna M\. Duron/g, escapeXml(autor.nombre));
-            xml = xml.replace(/Dirección de Investigación, UNITEC Tegucigalpa\./g, `Facultad ${escapeXml(autor.facultad)}, UNITEC / CEUTEC Honduras.`);
-
-            xml = xml.replace(/AUTOR 02 • ID 25631706500/g, 'RED INTERNA • UNITEC / CEUTEC');
-            xml = xml.replace(/Wilfredo C\. Flores/g, 'Comunidad Académica UNITEC');
-            xml = xml.replace(/Facultad de Ingeniería, UNITEC Tegucigalpa\./g, 'Articulación multidisciplinaria entre campus Tegucigalpa y SPS.');
-
-            xml = xml.replace(/AUTOR 03 • ID 57216847118/g, 'COAUTORÍA INTERNACIONAL');
-            xml = xml.replace(/Kevin Mejía Rivera/g, 'Red de Cooperación Científica');
-            xml = xml.replace(/Escuela de Arte y Diseño, UNITEC Tegucigalpa\./g, escapeXml(paisesStrCorto || 'Vínculos de investigación activa'));
-
-            xml = xml.replace(/AUTOR 04 • ID 57193993565/g, 'DIRECCIÓN DE INVESTIGACIÓN');
-            xml = xml.replace(/Gracia M\. Pineda/g, 'Gestión de Producción Científica');
-            xml = xml.replace(/Facultad de Ingeniería, UNITEC Tegucigalpa\./g, 'Soporte institucional, ética y visibilidad en Scopus.');
+            // Se unificó con la hoja de colaboraciones en slide10
+            continue;
         } 
         else if (s === 10) {
-            xml = xml.replace(/Sin Colaboraciones Registradas/g, escapeXml(paisesStr));
-            xml = xml.replace(/Media \(Promedio\): 0 colaboraciones externas por publicación\./g, `Redes de colaboración: ${redesCount} vínculos institucionales registrados.`);
-            xml = xml.replace(/Sede Institucional: 100% afiliación UNITEC Tegucigalpa\./g, `Afiliación Institucional: UNITEC / CEUTEC (Facultad ${escapeXml(autor.facultad)}).`);
-            xml = xml.replace(/Agrupación 2019: Sin colaboraciones hasta la fecha\./g, `Trayectoria Activa: Período ${primerAnio} - ${ultimoAnio}.`);
+            // Redes y colaboraciones internacionales con lista detallada de países y cantidades
+            xml = buildSlide10CollabXml({
+                nombre: escapeXml(autor.nombre),
+                facultad: escapeXml(autor.facultad),
+                redesCount,
+                totalPaisesExternos,
+                primerAnio,
+                ultimoAnio,
+                totalPubs,
+                totalCites,
+                topPaisesObj
+            });
         }
         else if (s === 11) {
-            xml = xml.replace(/Completitud de los 30 Campos Estándar de Scopus/g, `Completitud de los 30 Campos Estándar de Scopus: ${escapeXml(autor.nombre)}`);
+            // Se remueve la auditoría de completitud de Scopus según requerimiento
+            continue;
         }
         else if (s === 12) {
             // Reemplazo completo de la Diapositiva 12: Ficha Oficial de Cierre y Verificación (CERO vacío)
@@ -338,7 +317,40 @@ async function generarPlantillaAutorPptx(autor, globalData) {
         zip.file(slidePath, xml);
     }
 
-    // 6. Generar el archivo PPTX final
+    // 6. Eliminar del paquete PPTX las diapositivas no deseadas (slide7, slide9 y slide11)
+    // slide7 = rId13 (Ficha técnica)
+    // slide9 = rId15 (Articulación de coautores unificada en slide10)
+    // slide11 = rId17 (Completitud Scopus)
+    try {
+        let ct = await zip.file('[Content_Types].xml').async('string');
+        ct = ct.replace(/<Override PartName="\/ppt\/slides\/slide7\.xml"[^/]*\/>/, '');
+        ct = ct.replace(/<Override PartName="\/ppt\/slides\/slide9\.xml"[^/]*\/>/, '');
+        ct = ct.replace(/<Override PartName="\/ppt\/slides\/slide11\.xml"[^/]*\/>/, '');
+        zip.file('[Content_Types].xml', ct);
+
+        let pr = await zip.file('ppt/_rels/presentation.xml.rels').async('string');
+        pr = pr.replace(/<Relationship Id="rId13"[^/]*\/>/, '');
+        pr = pr.replace(/<Relationship Id="rId15"[^/]*\/>/, '');
+        pr = pr.replace(/<Relationship Id="rId17"[^/]*\/>/, '');
+        zip.file('ppt/_rels/presentation.xml.rels', pr);
+
+        let px = await zip.file('ppt/presentation.xml').async('string');
+        px = px.replace(/<ns0:sldId id="262"[^/]*\/>/, '');
+        px = px.replace(/<ns0:sldId id="264"[^/]*\/>/, '');
+        px = px.replace(/<ns0:sldId id="266"[^/]*\/>/, '');
+        zip.file('ppt/presentation.xml', px);
+
+        zip.remove('ppt/slides/slide7.xml');
+        zip.remove('ppt/slides/_rels/slide7.xml.rels');
+        zip.remove('ppt/slides/slide9.xml');
+        zip.remove('ppt/slides/_rels/slide9.xml.rels');
+        zip.remove('ppt/slides/slide11.xml');
+        zip.remove('ppt/slides/_rels/slide11.xml.rels');
+    } catch (errRem) {
+        console.warn('Aviso al depurar diapositivas eliminadas del paquete:', errRem);
+    }
+
+    // 7. Generar el archivo PPTX final
     const blob = await zip.generateAsync({
         type: 'blob',
         mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
@@ -649,6 +661,233 @@ function buildSlide3Xml(data) {
 </p:cSld>
 <p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>
 <p:transition spd="med" advClick="1"><p:wipe dir="r"/></p:transition>
+</p:sld>`;
+}
+
+// Genera el XML completo para la Diapositiva de Ejes Temáticos en Círculo (sin descripciones)
+function buildSlide8CirclesXml(autor, themes) {
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<p:cSld>
+  <p:bg><p:bgPr><a:solidFill><a:srgbClr val="F8FAFC"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>
+  <p:spTree>
+    <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+    <p:grpSpPr/>
+
+    <!-- Header Badge -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="2" name="Badge"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="609600" y="457200"/><a:ext cx="11582400" cy="171450"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="none" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/><a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1100"><a:solidFill><a:srgbClr val="1E40AF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>06 / CLASIFICACIÓN TEMÁTICA</a:t></a:r></a:p></p:txBody>
+    </p:sp>
+
+    <!-- Header Title -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="3" name="Title"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="609600" y="685800"/><a:ext cx="11582400" cy="447675"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="none" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/><a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="2600"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Ejes Principales de Investigación Científica</a:t></a:r></a:p></p:txBody>
+    </p:sp>
+
+    <!-- Header Subtitle -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="4" name="Subtitle"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="609600" y="1181100"/><a:ext cx="11582400" cy="228600"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="none" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/><a:p><a:pPr algn="l"/><a:r><a:rPr sz="1300"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Articulación temática interdisciplinaria en Scopus: ${escapeXml(autor.nombre)} (Facultad ${escapeXml(autor.facultad)})</a:t></a:r></a:p></p:txBody>
+    </p:sp>
+
+    <!-- Centro: Círculo Núcleo Institucional -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="10" name="Center_Circle"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="5096000" y="3050000"/><a:ext cx="2000000" cy="2000000"/></a:xfrm><a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="002855"/></a:solidFill><a:ln w="28575"><a:solidFill><a:srgbClr val="FFC72C"/></a:solidFill></a:ln></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="72000" rIns="72000" tIns="72000" bIns="72000" anchor="ctr"/><a:lstStyle/>
+        <a:p><a:pPr algn="ctr"/><a:r><a:rPr b="1" sz="1200"><a:solidFill><a:srgbClr val="FFC72C"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>LÍNEAS DE</a:t></a:r></a:p>
+        <a:p><a:pPr algn="ctr"/><a:r><a:rPr b="1" sz="1500"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>INVESTIGACIÓN</a:t></a:r></a:p>
+        <a:p><a:pPr algn="ctr"/><a:r><a:rPr sz="1050"><a:solidFill><a:srgbClr val="CBD5E1"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>UNITEC • CEUTEC</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    <!-- Círculo 0: Arriba (Azul UNITEC) -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="11" name="Circle_Top"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="4996000" y="1650000"/><a:ext cx="2200000" cy="1200000"/></a:xfrm><a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="72000" rIns="72000" tIns="72000" bIns="72000" anchor="ctr"/><a:lstStyle/>
+        <a:p><a:pPr algn="ctr"/><a:r><a:rPr b="1" sz="1350"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${escapeXml(themes[0].title)}</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    <!-- Círculo 1: Derecha (Ámbar CEUTEC) -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="12" name="Circle_Right"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="6850000" y="3450000"/><a:ext cx="2200000" cy="1200000"/></a:xfrm><a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="D97706"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="72000" rIns="72000" tIns="72000" bIns="72000" anchor="ctr"/><a:lstStyle/>
+        <a:p><a:pPr algn="ctr"/><a:r><a:rPr b="1" sz="1350"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${escapeXml(themes[1].title)}</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    <!-- Círculo 2: Abajo (Verde Esmeralda) -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="13" name="Circle_Bottom"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="4996000" y="5250000"/><a:ext cx="2200000" cy="1200000"/></a:xfrm><a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="059669"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="72000" rIns="72000" tIns="72000" bIns="72000" anchor="ctr"/><a:lstStyle/>
+        <a:p><a:pPr algn="ctr"/><a:r><a:rPr b="1" sz="1350"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${escapeXml(themes[2].title)}</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    <!-- Círculo 3: Izquierda (Púrpura) -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="14" name="Circle_Left"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="3142000" y="3450000"/><a:ext cx="2200000" cy="1200000"/></a:xfrm><a:prstGeom prst="ellipse"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="7C3AED"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill></a:ln></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="72000" rIns="72000" tIns="72000" bIns="72000" anchor="ctr"/><a:lstStyle/>
+        <a:p><a:pPr algn="ctr"/><a:r><a:rPr b="1" sz="1350"><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${escapeXml(themes[3].title)}</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+  </p:spTree>
+</p:cSld>
+<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>
+<p:transition spd="med" advClick="1"><p:push dir="l"/></p:transition>
+</p:sld>`;
+}
+
+// Genera el XML unificado para Redes y Coautorías Internacionales (reemplaza diapositivas 9 y 10)
+function buildSlide10CollabXml(data) {
+    let paisesItemsXml = '';
+    const yStart = 2800000;
+    const yGap = 500000;
+    const paises = data.topPaisesObj || [];
+
+    if (paises.length === 0) {
+        paisesItemsXml = `
+        <p:sp>
+          <p:nvSpPr><p:cNvPr id="100" name="No_Collab"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+          <p:spPr><a:xfrm><a:off x="952500" y="2800000"/><a:ext cx="4572000" cy="500000"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 4000"/></a:avLst></a:prstGeom><a:solidFill><a:srgbClr val="F8FAFC"/></a:solidFill><a:ln w="12700"><a:solidFill><a:srgbClr val="E2E8F0"/></a:solidFill></a:ln></p:spPr>
+          <p:txBody><a:bodyPr wrap="square" lIns="100000" rIns="100000" tIns="0" bIns="0" anchor="ctr"/><a:lstStyle/>
+            <a:p><a:pPr algn="l"/><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Consolidación institucional con producción nacional en Honduras.</a:t></a:r></a:p>
+          </p:txBody>
+        </p:sp>`;
+    } else {
+        paises.slice(0, 6).forEach((p, idx) => {
+            const curY = yStart + idx * yGap;
+            paisesItemsXml += `
+        <p:sp>
+          <p:nvSpPr><p:cNvPr id="${100 + idx}" name="Country_Bar_${idx}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+          <p:spPr><a:xfrm><a:off x="952500" y="${curY}"/><a:ext cx="4572000" cy="400000"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 4000"/></a:avLst></a:prstGeom><a:solidFill><a:srgbClr val="F8FAFC"/></a:solidFill><a:ln w="12700"><a:solidFill><a:srgbClr val="E2E8F0"/></a:solidFill></a:ln></p:spPr>
+          <p:txBody><a:bodyPr wrap="none" lIns="100000" rIns="100000" tIns="0" bIns="0" anchor="ctr"/><a:lstStyle/>
+            <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1150"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${escapeXml(p.pais)}</a:t></a:r><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t> — </a:t></a:r><a:r><a:rPr b="1" sz="1150"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${p.cant} colaboraciones</a:t></a:r></a:p>
+          </p:txBody>
+        </p:sp>`;
+        });
+    }
+
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<p:cSld>
+  <p:bg><p:bgPr><a:solidFill><a:srgbClr val="F8FAFC"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>
+  <p:spTree>
+    <p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>
+    <p:grpSpPr/>
+
+    <!-- Header Badge -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="2" name="Badge"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="609600" y="457200"/><a:ext cx="11582400" cy="171450"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="none" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/><a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1100"><a:solidFill><a:srgbClr val="1E40AF"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>07 / REDES Y COLABORACIONES INTERNACIONALES</a:t></a:r></a:p></p:txBody>
+    </p:sp>
+
+    <!-- Header Title -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="3" name="Title"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="609600" y="685800"/><a:ext cx="11582400" cy="447675"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="none" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/><a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="2600"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Redes de Coautoría Internacional y Alcance Global</a:t></a:r></a:p></p:txBody>
+    </p:sp>
+
+    <!-- Header Subtitle -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="4" name="Subtitle"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="609600" y="1181100"/><a:ext cx="11582400" cy="228600"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="none" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/><a:p><a:pPr algn="l"/><a:r><a:rPr sz="1300"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Distribución geográfica de vínculos científicos y coautorías externas: ${escapeXml(data.nombre)}</a:t></a:r></a:p></p:txBody>
+    </p:sp>
+
+    <!-- Contenedor Izquierdo: Coautorías Internacionales por País -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="10" name="Card_Left_Bg"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="609600" y="1600200"/><a:ext cx="5257800" cy="4500000"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 4000"/></a:avLst></a:prstGeom><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="E2E8F0"/></a:solidFill></a:ln></p:spPr>
+    </p:sp>
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="11" name="Card_Left_TopBar"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="609600" y="1600200"/><a:ext cx="5257800" cy="63500"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="7C3AED"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr>
+    </p:sp>
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="12" name="Card_Left_Header"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="952500" y="1800000"/><a:ext cx="4600000" cy="850000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1100"><a:solidFill><a:srgbClr val="7C3AED"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>COAUTORÍA INTERNACIONAL POR PAÍS</a:t></a:r></a:p>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1600"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.totalPaisesExternos || data.redesCount} Países Vinculados</a:t></a:r></a:p>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Cantidad de colaboraciones internacionales registradas en Scopus:</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    ${paisesItemsXml}
+
+    <!-- Contenedor Derecho: Síntesis de Colaboración Institucional -->
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="20" name="Card_Right_Bg"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="6324600" y="1600200"/><a:ext cx="5257800" cy="4500000"/></a:xfrm><a:prstGeom prst="roundRect"><a:avLst><a:gd name="adj" fmla="val 4000"/></a:avLst></a:prstGeom><a:solidFill><a:srgbClr val="FFFFFF"/></a:solidFill><a:ln w="19050"><a:solidFill><a:srgbClr val="E2E8F0"/></a:solidFill></a:ln></p:spPr>
+    </p:sp>
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="21" name="Card_Right_TopBar"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="6324600" y="1600200"/><a:ext cx="5257800" cy="63500"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr>
+    </p:sp>
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="22" name="Card_Right_Header"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="6667500" y="1800000"/><a:ext cx="4600000" cy="850000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1100"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>ANÁLISIS DE REDES INSTITUCIONALES</a:t></a:r></a:p>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1600"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Consolidación Académica</a:t></a:r></a:p>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr sz="1100"><a:solidFill><a:srgbClr val="64748B"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Métricas de articulación interna vs. externa:</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="23" name="Metric_Block_1"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="6667500" y="2800000"/><a:ext cx="4600000" cy="450000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1150"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Afiliación Institucional:</a:t></a:r></a:p>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>UNITEC / CEUTEC Honduras (Facultad ${escapeXml(data.facultad)})</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="24" name="Metric_Block_2"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="6667500" y="3400000"/><a:ext cx="4600000" cy="450000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1150"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Alcance Internacional:</a:t></a:r></a:p>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.redesCount} países colaboradores en coautorías indexadas</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="25" name="Metric_Block_3"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="6667500" y="4000000"/><a:ext cx="4600000" cy="450000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1150"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Período de Redes Activas:</a:t></a:r></a:p>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Producción acumulada ${data.primerAnio} - ${data.ultimoAnio}</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+    <p:sp>
+      <p:nvSpPr><p:cNvPr id="26" name="Metric_Block_4"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+      <p:spPr><a:xfrm><a:off x="6667500" y="4600000"/><a:ext cx="4600000" cy="450000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+      <p:txBody><a:bodyPr wrap="square" lIns="0" rIns="0" tIns="0" bIns="0" anchor="t"/><a:lstStyle/>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr b="1" sz="1150"><a:solidFill><a:srgbClr val="006FBA"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>Impacto y Visibilidad Scopus:</a:t></a:r></a:p>
+        <a:p><a:pPr algn="l"/><a:r><a:rPr sz="1150"><a:solidFill><a:srgbClr val="0F172A"/></a:solidFill><a:latin typeface="Montserrat"/></a:rPr><a:t>${data.totalPubs} publicaciones • ${data.totalCites} citas totales</a:t></a:r></a:p>
+      </p:txBody>
+    </p:sp>
+
+  </p:spTree>
+</p:cSld>
+<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr>
+<p:transition spd="med" advClick="1"><p:push dir="l"/></p:transition>
 </p:sld>`;
 }
 
